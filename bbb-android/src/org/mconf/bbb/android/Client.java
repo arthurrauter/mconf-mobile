@@ -96,7 +96,7 @@ public class Client extends BigBlueButtonActivity implements IBigBlueButtonClien
 	public static final int POPUP_MENU_KICK_LISTENER = Menu.FIRST + 3;
 	public static final int POPUP_MENU_OPEN_PRIVATE_CHAT = Menu.FIRST + 4;
 	public static final int POPUP_MENU_SHOW_VIDEO = Menu.FIRST + 5;
-
+	public static final int POPUP_MENU_LOWER_HAND = Menu.FIRST + 6;
 
 	public static final int CHAT_NOTIFICATION_ID = 77000;
 	public static final int BACKGROUND_NOTIFICATION_ID = 88000;
@@ -464,6 +464,8 @@ public class Client extends BigBlueButtonActivity implements IBigBlueButtonClien
 				if (contact.getUserId() != getBigBlueButton().getMyUserId())
 					menu.add(0, POPUP_MENU_OPEN_PRIVATE_CHAT, 0, R.string.open_private_chat);
 				if (moderator) {
+					if(contact.isRaiseHand())
+						menu.add(0, POPUP_MENU_LOWER_HAND, 0, R.string.lower_hand);
 					if (contact.getUserId() != getBigBlueButton().getMyUserId())
 						menu.add(0, POPUP_MENU_KICK_USER, 0, R.string.kick);
 					if (!contact.isPresenter())
@@ -508,6 +510,12 @@ public class Client extends BigBlueButtonActivity implements IBigBlueButtonClien
 			getBigBlueButton().assignPresenter(contact.getUserId());
 			return true;
 		}
+		case POPUP_MENU_LOWER_HAND:
+		{
+			Contact contact = (Contact) contactAdapter.getItem(info.position);
+			//\TODO implement the lower hand in the big blue button
+			//getBigBlueButton().lowerUserHand(contact.getUserId());
+		}
 		case POPUP_MENU_MUTE_LISTENER:
 		{
 			Listener listener = (Listener) listenerAdapter.getItem(info.position);
@@ -536,6 +544,7 @@ public class Client extends BigBlueButtonActivity implements IBigBlueButtonClien
 				showVideo(false, contact.getUserId(), contact.getName());
 			return true;
 		}
+		
 		}
 		return super.onContextItemSelected(item);
 	}
