@@ -1,3 +1,5 @@
+//BigBlueButtonBot, GT-MCONF @PRAV-UFRGS, developed by Arthur C. Rauter, august 2011.
+
 import org.mconf.bbb.BigBlueButtonClient;
 
 public class BbbBot {
@@ -14,24 +16,46 @@ public class BbbBot {
 	}
 	
 	public BbbBot(String[] args){
-		int j=0;
 		int i=0;
 		for (i=0;i < args.length; i++) {
 			if (args[i].equals("-n")) {
 				nBots = Integer.parseInt(args[i+1]);
+			}
+			/*
 				BotArmy = new BigBlueButtonClient[nBots];
 				do{
 					BotArmy[j] = new BigBlueButtonClient();
 					j++;
 				}while(j<nBots);
 			}
-			if (args[i].equals("-r")) {
+			*/
+			if (args[i].equals("-m")) {
 				room = args[i+1];
 			}
 			if (args[i].equals("-s")) {
 				server = args[i+1];
-			}			
+			}
+			/* TODO: arg to retrieve current meetings on server.
+			if (args[i].equals("--meetings")){
+				BigBlueButtonClient client = new BigBlueButtonClient();
+				
+			}
+			*/
+			if (args[i].equals("--help")) {
+				System.out.println("BigBlueButtonBot commands:" +
+						"\n-n [number_of_bots], default is 1" +
+						"\n-m [meeting_ID]" +
+						"\n-s [server_address], default is http://mconfweb.inf.ufrgs.br" +
+						"\nDeveloped for Mconf.");
+				System.exit(1);
+			}
 		}
+		int j=0;
+		BotArmy = new BigBlueButtonClient[nBots];
+		do{
+			BotArmy[j] = new BigBlueButtonClient();
+			j++;
+		}while(j<nBots);
 	}
 			
 	private int spawnBots(){
