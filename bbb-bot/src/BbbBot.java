@@ -1,6 +1,9 @@
 //BigBlueButtonBot, GT-MCONF @PRAV-UFRGS, developed by Arthur C. Rauter, august 2011.
 
+import java.util.List;
+
 import org.mconf.bbb.BigBlueButtonClient;
+import org.mconf.bbb.api.Meeting;
 
 public class BbbBot {
 	int nBots = 1;
@@ -35,17 +38,30 @@ public class BbbBot {
 			if (args[i].equals("-s")) {
 				server = args[i+1];
 			}
-			/* TODO: arg to retrieve current meetings on server.
+			
 			if (args[i].equals("--meetings")){
 				BigBlueButtonClient client = new BigBlueButtonClient();
+				client.getJoinService().load(server);
+				List<Meeting> onlineMeetings = client.getJoinService().getMeetings();
+				System.out.println("\n\n\nOnline Meetings:");
+				int k;
+				for (k=onlineMeetings.size()-1; k>=0; k--)
+				{
+					System.out.println("MeetingID: " + "\"" + onlineMeetings.get(k).getMeetingID() + "\"" + ", "
+							+ onlineMeetings.get(k).getParticipantCount() +  " participants"
+							);
+				}
+				System.out.println("\n");
+				System.exit(2);
 				
 			}
-			*/
+			
 			if (args[i].equals("--help")) {
 				System.out.println("BigBlueButtonBot commands:" +
 						"\n-n [number_of_bots], default is 1" +
-						"\n-m [meeting_ID]" +
-						"\n-s [server_address], default is http://mconfweb.inf.ufrgs.br" +
+						"\n-m [\"meeting_ID\"], choose the meeting(ID) to spawn the bots" +
+						"\n-s [\"server_address\"], default is http://mconfweb.inf.ufrgs.br" +
+						"\n--meetings, display current meetings(ID) and participant count" +
 						"\nDeveloped for Mconf.");
 				System.exit(1);
 			}
@@ -70,13 +86,13 @@ public class BbbBot {
 			if (BotArmy[Army_index].getJoinService().getJoinedMeeting() != null) 
 			{
 				BotArmy[Army_index].connectBigBlueButton();
-				System.out.println("return true");
+				//System.out.println("return true");
 				Army_index++;
 				spawnned++;
 			}
 			else
 			{
-				System.out.println("return false");
+				//System.out.println("return false");
 			}
 		nBots--;
 		}
