@@ -1,9 +1,9 @@
 package org.mconf.bbb.android.test;
 
-import org.mconf.bbb.android.Client;
-import org.mconf.bbb.android.LoginPage;
-import org.mconf.bbb.android.PrivateChat;
-import org.mconf.bbb.android.R;
+import org.mconf.android.bbbandroid.R;
+import org.mconf.android.bbbandroid.LoginPage;
+import org.mconf.android.core.Client;
+import org.mconf.android.core.PrivateChat;
 import org.mconf.bbb.users.IParticipant;
 
 import android.test.ActivityInstrumentationTestCase2;
@@ -16,7 +16,7 @@ public class TestPrivateChat extends ActivityInstrumentationTestCase2<LoginPage>
 	private Solo solo;
 	
 	public TestPrivateChat() {
-		super("org.mconf.bbb.android", LoginPage.class);
+		super("org.mconf.android.bbbandroid", LoginPage.class);
 	}
 	
 	@Override

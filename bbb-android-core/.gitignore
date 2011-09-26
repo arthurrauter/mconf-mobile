@@ -1,0 +1,8 @@
+bin/
+gen/
+obj/
+local.properties
+proguard.cfg
+build.xml
+*~
+Application.mk

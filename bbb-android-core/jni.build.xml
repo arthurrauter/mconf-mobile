@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="bbb-android-jni" basedir=".">
+    <property file="../local.properties" />
+	<property name="ndk-build.exec" value="${android.ndk.path}/ndk-build"/>
+    <property name="libs.dir" value="libs/armeabi" />
+    <property name="prebuilt.dir" value="${libs.dir}/prebuilt" />
+	
+	<property name="target.iva" value="thread common queue decode encode" />
+	<property name="target.mconf" value="mconfnativeshowvideo mconfnativeencodevideo" />
+
+	<target name="init">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${prebuilt.dir}"/>
+		</delete>
+		<mkdir dir="${prebuilt.dir}"/>
+		<copy toDir="${prebuilt.dir}" failonerror="false">
+			<fileset dir="${libs.dir}" includes="*.so"/>
+		</copy>
+		<copy toDir="obj/local/armeabi" failonerror="false" overwrite="false">
+			<fileset dir="${prebuilt.dir}" includes="*.so"/>
+		</copy>
+	</target>
+
+    <target name="clean">
+        <delete includeemptydirs="true" failonerror="false">
+            <fileset dir="obj/"/>
+			<fileset dir="${prebuilt.dir}"/>
+        </delete>      
+    </target>
+
+	<macrodef name="build">
+		<attribute name="target"/>
+		<sequential>
+			<exec executable="echo" output="jni/Application.mk" >
+                <arg value="-e" />
+                <arg value="APP_MODULES := @{target}\n" />
+                <arg value="APP_OPTIM := release\n" />
+                <arg value="APP_CFLAGS := -O3\n" />
+				<!-- http://groups.google.com/group/android-ndk/browse_thread/thread/983c436239d48704 -->
+				<arg value="APP_STL := gnustl_static" />
+			</exec>
+			<exec executable="${ndk-build.exec}" failonerror="true">
+				<arg value="-j" />
+				<arg value="8" />
+			</exec>
+		</sequential>
+	</macrodef>
+	
+	<target name="build-mconf" depends="init">
+		<build target="${target.mconf}"/>
+		<deploy-libs />
+	</target>
+	
+    <target name="build-iva" depends="init">
+        <build target="${target.iva}"/>
+		<deploy-libs />
+    </target>
+    
+	<macrodef name="deploy-libs">
+		<sequential>
+			<copy toDir="${prebuilt.dir}" overwrite="true">
+				<fileset dir="${libs.dir}" includes="*.so"/>
+			</copy>
+			<copy toDir="${libs.dir}" overwrite="true">
+				<fileset dir="${prebuilt.dir}" includes="*.so"/>
+			</copy>
+		</sequential>
+	</macrodef>
+	
+	<target name="build-all" depends="init">
+		<build target="${target.iva} ${target.mconf}" />
+		<deploy-libs />
+	</target>
+    
+</project>
