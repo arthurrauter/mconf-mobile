@@ -291,7 +291,7 @@ public class LoginPage extends BigBlueButtonActivity {
 			@Override
 			public void run() {
 				getBigBlueButton().createJoinService(serverUrl, serverPassword);
-				
+				//TODO
 				if (getBigBlueButton().getJoinService() == null) {
 					progressDialog.dismiss();
 					showToast(R.string.login_unsupported_server);
