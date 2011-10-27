@@ -1,8 +1,10 @@
 //BigBlueButtonBot, GT-MCONF @PRAV-UFRGS, developed by Arthur C. Rauter, august 2011.
 //Adding video to the bots through Xuggler library, September 2011.
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import org.mconf.bbb.BigBlueButtonClient;
 import org.mconf.bbb.api.Meeting;
@@ -20,47 +22,53 @@ import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.IVideoPicture;
 import com.xuggle.xuggler.demos.VideoImage;
+import org.mconf.bbb.video.IVideoPublishListener;
 
 
 public class BbbBot {
-	int nBots = 1;
-	String server = new String("http://mconf.org:8888");
-	String room = new String("");
-	BigBlueButtonClient[] BotArmy;
-	int Army_index = 0;
-	String videoFileName = new String("");
-	
-	//Creates the Master, which will spawn the bots.
+		
+	//Creates the Master (a BbbBot object), which will spawn the bots.
 	public static void main (String[] args) {
 		BbbBot Master = new BbbBot(args);
-		int botsCreated = Master.spawnBots();
-		System.out.println(botsCreated + " bots created @ " + Master.getRoom() + " @ " + Master.getServer());
-		if (!Master.getVideoFileName().equals(""))
-		{
+		Master.spawnBots();
+		if (Master.getVideoFileName().equals("")) {
+			//do nothing
+		}
+		else {
+			//video enabled
 			Master.sendBotsVideo();
 		}
 	}
+		
+	int nBots = 1;
+	String server = new String("http://mconf.org:8888");
+	String room = new String("");
+	bot[] botArmy;
+	int armyIndex = 0;
+	String videoFileName = new String("");
 	
-	
-	//processes the arguments and initializes the bot army
+	public int getnBots() {	return nBots;	}
+	public String getServer() {	return server;	}
+	public String getRoom() {	return room;	}
+	private String getVideoFileName() {	return videoFileName;	}
+			
+	//processes the arguments
 	public BbbBot(String[] args){
 		int i=0;
 		for (i=0;i < args.length; i++) {
+			
 			if (args[i].equals("-n")) {
-				nBots = Integer.parseInt(args[i+1]);
-			}
+				nBots = Integer.parseInt(args[i+1]);			}
 			
 			if (args[i].equals("-m")) {
-				room = args[i+1];
-			}
+				room = args[i+1];			}
+			
 			if (args[i].equals("-s")) {
-				server = args[i+1];
-			}
+				server = args[i+1];			}
 			
 			if (args[i].equals("--meetings")){
 				BigBlueButtonClient client = new BigBlueButtonClient();
 				client.createJoinService(server);
-				//client.getJoinService().setServer(server);
 				client.getJoinService().load();
 				List<Meeting> onlineMeetings = client.getJoinService().getMeetings();
 				System.out.println("\n\n\nOnline Meetings:");
@@ -75,8 +83,8 @@ public class BbbBot {
 				System.exit(2);
 			}
 			
-			if (args[i].equals("-v")){
-				this.videoFileName = args[i+1];
+			if (args[i].equals("-v")){ 
+				this.videoFileName = args[i+1]; 
 			}
 			
 			if (args[i].equals("--help")) {
@@ -91,63 +99,46 @@ public class BbbBot {
 			}
 						
 		}
-		int j=0;
-		BotArmy = new BigBlueButtonClient[nBots];
-		do{
-			BotArmy[j] = new BigBlueButtonClient();
-			
-			j++;
-		}while(j<nBots);
 	}
-			
-	private int spawnBots(){
-		int spawnned = 0;
-		Army_index = 0;
-		while (nBots > 0)
+		
+	public void spawnBots(){
+		armyIndex = 0;
+		botArmy = new bot[nBots];
+		while (nBots > armyIndex)
 		{
-			String name = "HappyBot#" + Integer.toString(Army_index);
-			BotArmy[Army_index].createJoinService(server);
-			BotArmy[Army_index].getJoinService().load();
-			BotArmy[Army_index].getJoinService().join(this.room, name, true);
-			if (BotArmy[Army_index].getJoinService().getJoinedMeeting() != null) 
-			{
-				BotArmy[Army_index].connectBigBlueButton();
-				Army_index++;
-				spawnned++;
-			}
-			else
-			{
-				System.out.println("Failed to join the meeting");
-				System.exit(3);
-			}
-		nBots--;
+			botArmy[armyIndex] = new bot(server, room, videoFileName);
+			botArmy[armyIndex].connect(armyIndex);
+			armyIndex++;
 		}
-		
-		return spawnned;
-		
 	}
 	
-	public int getnBots() {
-		return nBots;
-	}
-
-	public String getServer() {
-		return server;
-	}
-
-	public String getRoom() {
-		return room;
-	}
 	
-	private String getVideoFileName() {
-		return videoFileName;
+	public void sendBotsVideo(){
+		armyIndex = 0;
+		while (nBots > armyIndex)
+		{
+			botArmy[armyIndex].sendVideo();
+			armyIndex++;
+		}
 	}
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
 	private void sendBotsVideo(){
+	
 			IContainer container = IContainer.make();
-			
 			if(container.open(videoFileName, IContainer.Type.READ, null) < 0 ) {
 				System.out.println("Sorry, could not read file.");
 				System.exit(2);
@@ -183,29 +174,30 @@ public class BbbBot {
 				System.exit(4);
 			}
 			
-			//int numOfPackets =0;
-			//OpenJavaWindow();
-			
 			IPacket packet = IPacket.make();
+			
+			//for (int j=0; j < nBots; j++) {
+				this.startPublisher(BotArmy[0], videoCoder.getWidth(), videoCoder.getHeight());
+			//}
+			
 			while(container.readNextPacket(packet) >= 0) {
 				
 				if (packet.getStreamIndex() == videoStreamID) {
-					
-					
-					//System.out.println("Video Packet here");
-					//numOfPackets++;
-					
 					//video packet
-					
 					IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(),
 							videoCoder.getWidth(),
 							videoCoder.getHeight()
 							);
 					
+					//for(int loop=0; loop<10; loop++) {
+						System.out.println("pacotinho de vídeo");
+					//}
+								
 					//copy frame to sharedBuffer (?)
 					sharedBuffer = picture.getData().getByteArray(0, picture.getSize()); //(offset, length)
+					//sharedBuffer = new byte[200];
 					long timeStamp =  picture.getTimeStamp();
-					this.onReadyFrame( (int)timeStamp, sharedBuffer.length, BotArmy[0]);
+					this.onReadyFrame(sharedBuffer.length, (int)timeStamp, BotArmy[0]);
 					
 				}
 				else {
@@ -214,31 +206,26 @@ public class BbbBot {
 				
 			}
 			
-			//System.out.println("Packets of video:"+numOfPackets);
-			
 			if (videoCoder != null) {
 				videoCoder.close();
-				videoCoder = null;
-			}
+				videoCoder = null;			}
 			
 			if (container != null) {
 				container.close();
-				container = null;
-			}
+				container = null;			}
 			
-			//System.out.println("end");
-			//CloseJavaWindow();
 	}
 	
 	
-	//From mconf-mobile, org.mconf.android.core.video;VideoPublish.java
+	//From mconf-mobile,
+	//org.mconf.android.core.video,
+	//VideoPublish.java:
 	
 	int firstTimeStamp;
 	int lastTimeStamp;
 	byte[] sharedBuffer;
 	private VideoPublishHandler videoPublishHandler;
 	private List<Video> framesList = new ArrayList<Video>();
-	//private static final Logger log = LoggerFactory.getLogger(VideoPublish.class);
 	private boolean framesListAvailable = false; 
 	private boolean firstFrameWrote = false;
 	private class VideoPublishHandler extends IVideoPublishListener {
@@ -246,7 +233,15 @@ public class BbbBot {
 			super(userId, streamName, reader, context);
 		}
 	}
-			
+	
+	public void startPublisher(BigBlueButtonClient context, int width, int height){
+    	videoPublishHandler = new VideoPublishHandler(context.getMyUserId(),
+    			width+"x"+height+context.getMyUserId(),
+    			 this,
+    			context);
+    	videoPublishHandler.start();
+    }
+	
 	public int onReadyFrame (int bufferSize, int timeStamp, BigBlueButtonClient context)
     {    	
 				
@@ -262,19 +257,31 @@ public class BbbBot {
     	    	
        	Video video = new Video(timeStamp, aux, bufferSize);
    	    video.getHeader().setDeltaTime(interval);
+   	    
+   	    //System.out.println(videoPublishHandler.videoConnection.streamId);
+   	    //
+   	    System.out.println(context.getUsersModule().getParticipants());
+   	    System.exit(6);
+   	    
 		video.getHeader().setStreamId(videoPublishHandler.videoConnection.streamId);
 		
-		if(context.getUsersModule().getParticipants().get(context.getMyUserId()).getStatus().isHasStream()
-		   && framesListAvailable && framesList != null){
+   	 	System.out.println("on Ready Frame");
+   	   	    
+		if(context.getUsersModule().getParticipants().get(context.getMyUserId()).getStatus().isHasStream() &&
+		    framesListAvailable && framesList != null){
 			framesList.add(video);
 			if(!firstFrameWrote){
-				if(videoPublishHandler != null && videoPublishHandler.videoConnection != null
-						&& videoPublishHandler.videoConnection.publisher != null
-						&& videoPublishHandler.videoConnection.publisher.isStarted()) {
+				if(videoPublishHandler != null && videoPublishHandler.videoConnection != null 
+						&& videoPublishHandler.videoConnection.publisher != null 
+						&& videoPublishHandler.videoConnection.publisher.isStarted()) 
+				{
 					firstFrameWrote = true;
 					videoPublishHandler.videoConnection.publisher.fireNext(
 							videoPublishHandler.videoConnection.publisher.channel, 0);
-				} else {
+					System.exit(7);
+					 
+				} 
+				else {
 					//log.debug("Warning: tried to fireNext but video publisher is not started");
 					System.out.println("tried to fireNext but video publisher is not started");
 				}
@@ -286,9 +293,70 @@ public class BbbBot {
 		
     	return 0;
     }
+	
+	@Override
+	public void close() {		
+		framesListAvailable = false;
+		if(framesList != null){
+			framesList.clear();
+		}
+		framesList = null;
+	}
+
+	@Override
+	public Metadata getMetadata() {
+		return null;
+	}
+
+	@Override
+	public Video[] getStartMessages() {
+		framesListAvailable = true;
+		Video[] startMessages = new Video[0];
+        return startMessages;
+	}
+
+	@Override
+	public long getTimePosition() {
+		return 0;
+	}
+
+	@Override
+	public boolean hasNext() {
+		if(framesListAvailable && framesList != null && framesList.isEmpty()){
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		if(framesListAvailable && framesList != null){ // means that the framesList is not empty
+			return true;
+		} else { // means that the framesList is empty or we should not get next frames
+			return false;
+		}
+	}
+
+	@Override
+	public Video next() {
+		if(framesListAvailable && framesList != null){
+			return framesList.remove(0);
+		} else {
+			Video emptyVideo = new Video();
+	        return emptyVideo;
+		}
+	}
+
+	@Override
+	public long seek(long timePosition) {
+		return 0;
+	}
+
+	@Override
+	public void setAggregateDuration(int targetDuration) {
+	}
 
 
-
+*/
 
 }
 
