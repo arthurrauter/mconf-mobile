@@ -38,13 +38,15 @@ public class BbbBot {
 			//video enabled
 			Master.sendBotsVideo();
 		}
-	}
 		
+	}
+	
+	int botsConnected = 0;
 	int nBots = 1;
 	String server = new String("http://mconf.org:8888");
 	String room = new String("");
 	bot[] botArmy;
-	int armyIndex = 0;
+	int botIndex = 0;
 	String videoFileName = new String("");
 	
 	public int getnBots() {	return nBots;	}
@@ -102,32 +104,42 @@ public class BbbBot {
 	}
 		
 	public void spawnBots(){
-		armyIndex = 0;
+		botIndex = 0;
 		botArmy = new bot[nBots];
-		while (nBots > armyIndex)
+		while (nBots > botIndex)
 		{
-			botArmy[armyIndex] = new bot(server, room, videoFileName);
-			botArmy[armyIndex].connect(armyIndex);
-			armyIndex++;
+			botArmy[botIndex] = new bot(server, room, videoFileName);
+			if (botArmy[botIndex].connect(botIndex)) {
+				botsConnected++;
+			}
+			botIndex++;
 		}
+		
+		/*
+		 *
+		 * debugging:
+		botIndex = 0;
+		while (nBots > botIndex)
+		{
+			System.out.println("userId bot["+botIndex+"]: " + botArmy[botIndex].getMyUserId());
+			botIndex++;
+		}
+		System.out.println("nBots: " + nBots );
+		System.out.println("botsConnected: " + botsConnected);
+		System.exit(21); */
+		
 	}
 	
 	
 	public void sendBotsVideo(){
-		armyIndex = 0;
-		while (nBots > armyIndex)
+		botIndex = 0;
+		while (nBots > botIndex +1)
 		{
-			botArmy[armyIndex].sendVideo();
-			armyIndex++;
+			botArmy[botIndex].sendVideo();
+			botIndex++;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
+
 	
 	
 	
@@ -136,6 +148,10 @@ public class BbbBot {
 	
 	
 	/*
+	
+	
+	
+	
 	private void sendBotsVideo(){
 	
 			IContainer container = IContainer.make();

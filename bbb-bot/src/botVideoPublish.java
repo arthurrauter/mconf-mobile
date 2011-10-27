@@ -130,6 +130,9 @@ public class botVideoPublish extends Thread implements RtmpReader {
        	Video video = new Video(timeStamp, aux, bufferSize);
    	    video.getHeader().setDeltaTime(interval);
 		video.getHeader().setStreamId(videoPublishHandler.videoConnection.streamId);
+			
+		//System.out.println(context.getMyUserId());
+		//System.exit(1);
 		
 		if(context.getUsersModule().getParticipants().get(context.getMyUserId()).getStatus().isHasStream()
 		   && framesListAvailable && framesList != null){

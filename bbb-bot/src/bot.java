@@ -28,19 +28,23 @@ public class bot extends BigBlueButtonClient{
 		this.videoFileName = videoFileName;
 	}
 		
-	public void connect(int number){
+	public boolean connect(int number){
 		name = name + Integer.toString(number);
 		this.createJoinService(server);
 		this.getJoinService().load();
 		this.getJoinService().join(room, name, true);
 		if (this.getJoinService().getJoinedMeeting() != null) 
 		{
-			this.connectBigBlueButton();
+			if(this.connectBigBlueButton())
+				return true;
+			else 
+				return false;
 		}
 		else
 		{
 			System.out.println(name  + " failed to join the meeting");
 			System.exit(3);
+			return false;
 		}
 	}
 
@@ -73,30 +77,27 @@ public class bot extends BigBlueButtonClient{
 		}
 		
 		double frameRate = videoCoder.getFrameRate().getDouble();
-		System.out.println("frameRate: " + frameRate);
-		System.out.println("(int) frameRate: " + (int)frameRate);
 		botVideoPublish = new botVideoPublish(this, true, (int)frameRate , videoCoder.getWidth(), videoCoder.getHeight(), videoCoder.getBitRate()); 
 		botVideoPublish.startPublisher();
 		IPacket packet = IPacket.make();
 		
 		while(container.readNextPacket(packet) >= 0) {
 			if (packet.getStreamIndex() == videoStreamID) {
+				
 				IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(),
 						videoCoder.getWidth(),
 						videoCoder.getHeight()
 						);
-				
 				byte[] sharedBuffer = picture.getData().getByteArray(0, picture.getSize()); //(offset, length)
 				long timeStamp =  picture.getTimeStamp();
-				//this.onReadyFrame(sharedBuffer.length, (int)timeStamp, BotArmy[0]);
-				
+				this.botVideoPublish.onReadyFrame(sharedBuffer.length, (int)timeStamp, sharedBuffer);
 			}
 			else {
 				//not a video packet
 			}
 	
+		}
+	
+	
 	}
-	
-	
-
 }
