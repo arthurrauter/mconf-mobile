@@ -27,7 +27,7 @@ public class botVideoPublish extends Thread implements RtmpReader {
     public int height;
     public int bitRate;
     public int GOP;
-    	
+      	
 	private List<Video> framesList = new ArrayList<Video>();
 	
 	private VideoPublishHandler videoPublishHandler;
@@ -117,6 +117,7 @@ public class botVideoPublish extends Thread implements RtmpReader {
         
     public int onReadyFrame (int bufferSize, int timeStamp, byte[] sharedBuffer)
     {    	
+    	
     	if(firstTimeStamp == 0){
     		firstTimeStamp = timeStamp;
     	}    	
@@ -125,32 +126,36 @@ public class botVideoPublish extends Thread implements RtmpReader {
     	lastTimeStamp = timeStamp;
     	
     	byte[] aux = new byte[bufferSize];
-    	System.arraycopy(sharedBuffer, 0, aux, 0, bufferSize); //\TODO see if we can avoid this copy
+    	System.arraycopy(sharedBuffer, 0, aux, 0, bufferSize);
     	
        	Video video = new Video(timeStamp, aux, bufferSize);
    	    video.getHeader().setDeltaTime(interval);
 		video.getHeader().setStreamId(videoPublishHandler.videoConnection.streamId);
-			
-		//System.out.println(context.getMyUserId());
-		//System.exit(1);
 		
 		if(context.getUsersModule().getParticipants().get(context.getMyUserId()).getStatus().isHasStream()
-		   && framesListAvailable && framesList != null){
+		   && framesListAvailable && framesList != null)
+		{
+			
 			framesList.add(video);
-			if(!firstFrameWrote){
-				if(videoPublishHandler != null && videoPublishHandler.videoConnection != null
+//			System.out.println("fired");
+			if(true)//!firstFrameWrote)
+			{
+				if(videoPublishHandler != null 
+						&& videoPublishHandler.videoConnection != null
 						&& videoPublishHandler.videoConnection.publisher != null
-						&& videoPublishHandler.videoConnection.publisher.isStarted()) {
+						&& videoPublishHandler.videoConnection.publisher.isStarted()) 
+				{
 					firstFrameWrote = true;
-					videoPublishHandler.videoConnection.publisher.fireNext(
-							videoPublishHandler.videoConnection.publisher.channel, 0);
-				} else {
+					videoPublishHandler.videoConnection.publisher.fireNext(videoPublishHandler.videoConnection.publisher.channel, 0);
+				
+				} 
+				else {
 					log.debug("Warning: tried to fireNext but video publisher is not started");
 				}
 			}
-			synchronized(this) {
-				this.notifyAll();
-			}
+			//synchronized(this) {
+			//	this.notifyAll();
+			//}
 		}
 		
     	return 0;

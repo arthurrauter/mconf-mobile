@@ -1,15 +1,19 @@
+
 import org.mconf.bbb.BigBlueButtonClient;
+import org.mconf.bbb.IBigBlueButtonClientListener;
+import org.mconf.bbb.chat.ChatMessage;
+import org.mconf.bbb.listeners.IListener;
+import org.mconf.bbb.users.IParticipant;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IPacket;
-import com.xuggle.xuggler.IRational;
 import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.IVideoPicture;
 
 
-public class bot extends BigBlueButtonClient{
+public class bot extends BigBlueButtonClient implements IBigBlueButtonClientListener {
 	
 	String name = new String("BOT");
 	String server = new String("http://mconf.org:8888");
@@ -62,6 +66,10 @@ public class bot extends BigBlueButtonClient{
 		for(int i=0;i<numStreams;i++) {
 			IStream stream = container.getStream(i);
 			IStreamCoder coder = stream.getStreamCoder();
+			
+			System.out.println("Stream "+i+": "+coder.getCodecType());
+			System.out.println("codec: " + coder.getCodecID());
+						
 			if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO) {
 				videoStreamID = i;
 				videoCoder = coder;
@@ -88,9 +96,41 @@ public class bot extends BigBlueButtonClient{
 						videoCoder.getWidth(),
 						videoCoder.getHeight()
 						);
-				byte[] sharedBuffer = picture.getData().getByteArray(0, picture.getSize()); //(offset, length)
-				long timeStamp =  picture.getTimeStamp();
-				this.botVideoPublish.onReadyFrame(sharedBuffer.length, (int)timeStamp, sharedBuffer);
+				
+					
+				int offset = 0;
+			    while(offset < packet.getSize())
+			    {
+			          /*Now, we decode the video, checking for any errors.*/
+			          int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
+			          if (bytesDecoded < 0)
+			          {
+			        	  System.out.println("bytes decoded < 0");
+			        	  System.exit(51);
+				      }
+			          offset += bytesDecoded;
+			          /*
+			           * Some decoders will consume data in a packet, but will not be able to construct
+			           * a full video picture yet.  Therefore you should always check if you
+			           * got a complete picture from the decoder
+			           */
+			          if (picture.isComplete())
+			          {
+			        	  byte[] sharedBuffer = new byte[picture.getSize()];
+			        	  sharedBuffer = picture.getData().getByteArray(0, picture.getSize()); //(offset, length)
+			        	/*
+			        	  System.out.println("sharedBuffer:");
+						  System.out.println(sharedBuffer);
+						  System.out.println("sharedBuffer lenght: " + sharedBuffer.length);
+						
+							for (byte _byte : sharedBuffer) {
+								System.out.print(_byte + "+");
+							}
+						*/
+			        	  long timeStamp =  picture.getTimeStamp();
+						  this.botVideoPublish.onReadyFrame(sharedBuffer.length, (int)timeStamp, sharedBuffer);
+			          }
+			    }
 			}
 			else {
 				//not a video packet
@@ -99,5 +139,75 @@ public class bot extends BigBlueButtonClient{
 		}
 	
 	
+	}
+	@Override
+	public void onPublicChatMessage(ChatMessage message, IParticipant source) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onPrivateChatMessage(ChatMessage message, IParticipant source) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onConnected() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onDisconnected() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onKickUserCallback() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onParticipantLeft(IParticipant p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onParticipantJoined(IParticipant p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onParticipantStatusChangePresenter(IParticipant p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onParticipantStatusChangeHasStream(IParticipant p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onParticipantStatusChangeRaiseHand(IParticipant p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onListenerJoined(IListener p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onListenerLeft(IListener p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onListenerStatusChangeIsMuted(IListener p) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onListenerStatusChangeIsTalking(IListener p) {
+		// TODO Auto-generated method stub
+		
 	}
 }
